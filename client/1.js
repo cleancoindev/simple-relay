@@ -23,10 +23,9 @@ async function main() {
   lepton.loadNetwork('0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', provider, 11572393);
   const walletID = await lepton.createWalletFromMnemonic('00', config.leptonMnemonic);
   await new Promise((resolve) => lepton.wallets[walletID].once('scanned', resolve));
-  console.log(await lepton.wallets[walletID].balances(3));
-
-  console.log(await lepton.merkletree[3].erc20.getTreeLength(0));
-  console.log(await lepton.merkletree[3].erc20);
+  lepton.wallets[walletID].on('scanned', async () => {
+    console.log(await lepton.wallets[walletID].balances(3));
+  });
 
   // const output = new ERC20Note(
   //   Lepton.decodeAddress(await lepton.wallets[walletID].getAddress(0, false)).publicKey,
