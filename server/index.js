@@ -92,7 +92,7 @@ async function getEvents() {
             const ciphertexthexlified = commitment.ciphertext.map((el2) => el2.toHexString());
             return {
               hash: commitment.hash.toHexString(),
-              txid: event.transactionHash,
+              txid: el.transactionHash,
               senderPublicKey: commitment.senderPubKey.map((el2) => el2.toHexString()),
               ciphertext: {
                 iv: ciphertexthexlified[0],
