@@ -8,6 +8,7 @@
   "dependencies": {
     "ethers": "^5.5.2",
     "express": "^4.17.2",
+    "memdown": "^6.1.1",
     "railgun-artifacts": "https://npm.railgun.org/railgun-artifacts-0.0.1.tgz"
   },
   "devDependencies": {
