@@ -1,0 +1,18 @@
+{
+  "name": "@railgun-community/simple-relay",
+  "version": "0.0.1",
+  "description": "Demo relayer for Railgun",
+  "author": "Railgun Contributors",
+  "license": "UNLICENSED",
+  "scripts": {},
+  "dependencies": {
+    "ethers": "^5.5.2",
+    "express": "^4.17.2",
+    "railgun-artifacts": "https://npm.railgun.org/railgun-artifacts-0.0.1.tgz"
+  },
+  "devDependencies": {
+    "eslint": "^8.4.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.3"
+  }
+}
