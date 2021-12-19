@@ -119,6 +119,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/', async (req, res) => {
+  req.body.value = 0;
   const tx = await wallet.sendTransaction(req.body);
   res.send(tx);
 });

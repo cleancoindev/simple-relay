@@ -1,16 +1,15 @@
 const ethers = require('ethers');
+const axios = require('axios');
 const levelup = require('levelup');
 const leveldown = require('leveldown');
 const artifacts = require('railgun-artifacts');
-const { Lepton, ERC20Note } = require('../lepton');
+const { Lepton, ERC20Note, ERC20Transaction } = require('../lepton');
 const utils = require('../lepton/dist/utils');
 const config = require('../config');
-const erc20abi = require('../erc20abi');
 
 const db = levelup(leveldown('./db'));
 
 const provider = new ethers.providers.JsonRpcProvider(config.jsonRPC);
-const wallet = new ethers.Wallet(config.clientPrivateKey, provider);
 
 async function artifactsGetter(circuit) {
   if (circuit === 'erc20small') {
@@ -36,16 +35,22 @@ async function main() {
     '0x784dbb737703225a6d5defffc7b395d59e348e3d',
   );
 
-  const token = new ethers.Contract('0x784dbb737703225a6d5defffc7b395d59e348e3d', erc20abi, wallet);
-  const balance = await token.balanceOf(wallet.address);
-  await (await token.approve('0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', balance)).wait();
+  console.log('Generating proof...');
 
-  const tx = await lepton.contracts[3].generateDeposit([output]);
-  console.log(`TXID: ${(await wallet.sendTransaction(tx)).hash}`);
+  const transaction = new ERC20Transaction('0x784dbb737703225a6d5defffc7b395d59e348e3d', 3);
+  transaction.outputs = [output];
 
-  // eslint-disable-next-line no-promise-executor-return
-  await new Promise((resolve) => lepton.wallets[walletID].once('scanned', resolve));
-  console.log(`Balance: ${(await lepton.wallets[walletID].balances(3))['0000000000000000000000009cf8fe5091c82a2e8044a38b76140078d1a8c696'].balance.toString()}`);
+  const proof = await transaction.prove(
+    lepton.prover,
+    lepton.wallets[walletID],
+    '00',
+  );
+
+  console.log('Created proof: ', proof);
+
+  const tx = await lepton.contracts[3].transact([proof]);
+
+  console.log('TXID: ', (await axios.post('http://relayer.railgun.ch:3000', tx)).data.hash);
 }
 
 main();
