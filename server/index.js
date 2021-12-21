@@ -1,5 +1,6 @@
 const express = require('express');
 const ethers = require('ethers');
+const utils = require('../lepton/dist/utils');
 const config = require('../config');
 const abi = require('../abi');
 
@@ -10,7 +11,8 @@ const provider = new ethers.providers.JsonRpcProvider(config.jsonRPC);
 const wallet = new ethers.Wallet(config.relayerPrivateKey, provider);
 const contract = new ethers.Contract('0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', abi, provider);
 
-const events = [];
+const commitmentevents = [];
+const nullifierevents = [];
 
 async function getEvents() {
   contract.on(
@@ -21,11 +23,18 @@ async function getEvents() {
       commitments,
       event,
     ) => {
-      events.push({
+      commitmentevents.push({
         treeNumber: treeNumber.toNumber(),
         startPosition: startPosition.toNumber(),
-        commitments,
-        txid: event.transactionHash,
+        commitments: commitments.map((commitment) => ({
+          pubkey: utils.babyjubjub.packPoint(
+            commitment.pubkey.map((el2) => el2.toHexString()),
+          ),
+          random: utils.bytes.hexlify(commitment.random.toHexString()),
+          amount: utils.bytes.hexlify(commitment.amount.toHexString()),
+          token: utils.bytes.hexlify(commitment.token),
+        })),
+        txid: utils.bytes.hexlify(event.transactionHash),
       });
     },
   );
@@ -38,11 +47,39 @@ async function getEvents() {
       commitments,
       event,
     ) => {
-      events.push({
+      commitmentevents.push({
         treeNumber: treeNumber.toNumber(),
         startPosition: startPosition.toNumber(),
-        commitments,
-        txid: event.transactionHash,
+        commitments: commitments.map((commitment) => {
+          const ciphertexthexlified = commitment.ciphertext.map(
+            (el2) => utils.bytes.hexlify(el2.toHexString()),
+          );
+          return {
+            hash: utils.bytes.hexlify(commitment.hash.toHexString()),
+            txid: utils.bytes.hexlify(event.transactionHash),
+            senderPublicKey: utils.babyjubjub.packPoint(
+              commitment.senderPubKey.map((el2) => el2.toHexString()),
+            ),
+            ciphertext: {
+              iv: ciphertexthexlified[0],
+              data: ciphertexthexlified.slice(1),
+            },
+          };
+        }),
+        txid: utils.bytes.hexlify(event.transactionHash),
+      });
+    },
+  );
+
+  contract.on(
+    'Nullifier',
+    (
+      nullifier,
+      event,
+    ) => {
+      nullifierevents.push({
+        txid: utils.bytes.hexlify(event.transactionHash),
+        nullifier: utils.bytes.hexlify(nullifier.toHexString()),
       });
     },
   );
@@ -56,7 +93,7 @@ async function getEvents() {
   // Process chunks of blocks at a time
   while (currentStartBlock < latest) {
     // Loop through each list of events and push to array
-    events.push(
+    commitmentevents.push(
       // eslint-disable-next-line no-await-in-loop
       ...(await contract.queryFilter(
         contract.filters.GeneratedCommitmentBatch(),
@@ -64,20 +101,22 @@ async function getEvents() {
         currentStartBlock + SCAN_CHUNKS,
       )).map((el) => {
         const event = {
-          txid: el.transactionHash,
-          treeNumber: el.args.treeNumber.toHexString(),
-          startPosition: el.args.startPosition.toHexString(),
+          txid: utils.bytes.hexlify(el.transactionHash),
+          treeNumber: el.args.treeNumber.toNumber(),
+          startPosition: el.args.startPosition.toNumber(),
           commitments: el.args.commitments.map((commitment) => ({
-            pubkey: commitment.pubkey.map((el2) => el2.toHexString()),
-            random: commitment.random.toHexString(),
-            amount: commitment.amount.toHexString(),
-            token: commitment.token,
+            pubkey: utils.babyjubjub.packPoint(
+              commitment.pubkey.map((el2) => el2.toHexString()),
+            ),
+            random: utils.bytes.hexlify(commitment.random.toHexString()),
+            amount: utils.bytes.hexlify(commitment.amount.toHexString()),
+            token: utils.bytes.hexlify(commitment.token),
           })),
         };
         return event;
       }),
     );
-    events.push(
+    commitmentevents.push(
       // eslint-disable-next-line no-await-in-loop
       ...(await contract.queryFilter(
         contract.filters.CommitmentBatch(),
@@ -85,21 +124,39 @@ async function getEvents() {
         currentStartBlock + SCAN_CHUNKS,
       )).map((el) => {
         const event = {
-          txid: el.transactionHash,
-          treeNumber: el.args.treeNumber.toHexString(),
-          startPosition: el.args.startPosition.toHexString(),
+          txid: utils.bytes.hexlify(el.transactionHash),
+          treeNumber: el.args.treeNumber.toNumber(),
+          startPosition: el.args.startPosition.toNumber(),
           commitments: el.args.commitments.map((commitment) => {
-            const ciphertexthexlified = commitment.ciphertext.map((el2) => el2.toHexString());
+            const ciphertexthexlified = commitment.ciphertext.map(
+              (el2) => utils.bytes.hexlify(el2.toHexString()),
+            );
             return {
-              hash: commitment.hash.toHexString(),
-              txid: el.transactionHash,
-              senderPublicKey: commitment.senderPubKey.map((el2) => el2.toHexString()),
+              hash: utils.bytes.hexlify(commitment.hash.toHexString()),
+              txid: utils.bytes.hexlify(el.transactionHash),
+              senderPublicKey: utils.babyjubjub.packPoint(
+                commitment.senderPubKey.map((el2) => el2.toHexString()),
+              ),
               ciphertext: {
                 iv: ciphertexthexlified[0],
                 data: ciphertexthexlified.slice(1),
               },
             };
           }),
+        };
+        return event;
+      }),
+    );
+    nullifierevents.push(
+      // eslint-disable-next-line no-await-in-loop
+      ...(await contract.queryFilter(
+        contract.filters.Nullifier(),
+        currentStartBlock,
+        currentStartBlock + SCAN_CHUNKS,
+      )).map((el) => {
+        const event = {
+          txid: utils.bytes.hexlify(el.transactionHash),
+          nullifier: utils.bytes.hexlify(el.args.nullifier.toHexString()),
         };
         return event;
       }),
@@ -115,7 +172,10 @@ getEvents();
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.json(events);
+  res.json({
+    commitmentevents,
+    nullifierevents,
+  });
 });
 
 app.post('/', async (req, res) => {
