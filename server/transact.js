@@ -10,7 +10,7 @@ const wallet = new ethers.Wallet(config.relayerPrivateKey, provider);
 const contract = new ethers.Contract('0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', abi, provider);
 
 const relayerPaymentPrivateKey = '0f75f0f0f1e2d1021b1d7f839bea176d24c87e089ee959c6fb9c0e650473d684';
-const relayerPaymentPublicKey = utils.babyjubjub.privateKeyToPublicKey(relayerPaymentPrivateKey);
+const relayerPaymentPublicKey = utils.babyjubjub.privateKeyToPubKey(relayerPaymentPrivateKey);
 // Public Key: f0778519e8392743ac51cfb56d3e58d0aa3a78bda158f5a2adbd2d57615fcb0e
 // Address: rgany1q8c80pgeaqujwsav288m2mf7trg25wnchks43adz4k7j64mptl9sun7g7an
 
