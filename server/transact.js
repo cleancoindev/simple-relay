@@ -15,7 +15,7 @@ const relayerPaymentPublicKey = utils.babyjubjub.privateKeyToPublicKey(relayerPa
 // Address: rgany1q8c80pgeaqujwsav288m2mf7trg25wnchks43adz4k7j64mptl9sun7g7an
 
 async function getRelayerPublicKey() {
-  return utils.babyjubjub.privateKeyToPublicKey(config.relayerPrivateKey);
+  return relayerPaymentPublicKey;
 }
 
 async function transact(transaction) {
