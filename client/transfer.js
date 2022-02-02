@@ -20,7 +20,7 @@ async function artifactsGetter(circuit) {
 
 async function main() {
   const lepton = new Lepton(db, artifactsGetter);
-  lepton.loadNetwork('0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', provider, 11572393);
+  lepton.loadNetwork(3, '0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', provider, 11572393);
   const walletID = await lepton.createWalletFromMnemonic('00', config.leptonMnemonic);
   lepton.wallets[walletID].on('scanned', async () => {
     console.log((await lepton.wallets[walletID].balances(3)));
