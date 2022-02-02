@@ -20,7 +20,7 @@ async function artifactsGetter(circuit) {
 }
 
 async function main() {
-  const lepton = new Lepton(db, artifactsGetter);
+  const lepton = new Lepton(db, artifactsGetter, undefined, console);
   lepton.loadNetwork(3, '0x791532E6155E0F69cEE328B356C8B6A8DaFB9076', provider, 11572393);
   const walletID = await lepton.createWalletFromMnemonic('00', config.leptonMnemonic);
   lepton.wallets[walletID].on('scanned', async () => {
@@ -45,7 +45,7 @@ async function main() {
 
   // eslint-disable-next-line no-promise-executor-return
   await new Promise((resolve) => lepton.wallets[walletID].once('scanned', resolve));
-  console.log(`Balance: ${(await lepton.wallets[walletID].balances(3))['0000000000000000000000009cf8fe5091c82a2e8044a38b76140078d1a8c696'].balance.toString()}`);
+  console.log(`Balance: ${(await lepton.wallets[walletID].balances(3))['000000000000000000000000784dbb737703225a6d5defffc7b395d59e348e3d'].balance.toString()}`);
 }
 
 main();
