@@ -55,13 +55,13 @@ async function transact(transaction) {
         sharedKey,
       );
 
-      if (decryptedNote.publicKey === relayerPaymentPublicKey) {
-        if (`0x${decryptedNote.hash}` !== note.hash.toHexString()) throw new Error('Client attempted to steal from relayer via invalid ciphertext');
+      if (decryptedNote.pubkey === relayerPaymentPublicKey) {
+        if (`0x${decryptedNote.hash}` !== note.hash.toHexString())
+          throw new Error('Client attempted to steal from relayer via invalid ciphertext');
 
         if (!payments[decryptedNote.token]) payments[decryptedNote.token] = new BN(0);
 
-        payments[decryptedNote.token] = payments[decryptedNote.token]
-          .add(utils.bytes.numberify(decryptedNote.amount));
+        payments[decryptedNote.token] = payments[decryptedNote.token].add(utils.bytes.numberify(decryptedNote.amount));
       }
     });
   });
