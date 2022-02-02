@@ -7,6 +7,7 @@
   "scripts": {},
   "dependencies": {
     "axios": "^0.24.0",
+    "bn.js": "^4.12.0",
     "ethers": "^5.5.2",
     "express": "^4.17.2",
     "leveldown": "^6.1.0",

@@ -35,10 +35,17 @@ async function main() {
     '0x784dbb737703225a6d5defffc7b395d59e348e3d',
   );
 
+  const relayerPaymentOutput = new ERC20Note(
+    'f0778519e8392743ac51cfb56d3e58d0aa3a78bda158f5a2adbd2d57615fcb0e', // Relayer public key
+    utils.babyjubjub.random(),
+    '0xff',
+    '0x784dbb737703225a6d5defffc7b395d59e348e3d',
+  );
+
   console.log('Generating proof...');
 
   const transaction = new ERC20Transaction('0x784dbb737703225a6d5defffc7b395d59e348e3d', 3);
-  transaction.outputs = [output];
+  transaction.outputs = [output, relayerPaymentOutput];
 
   const proof = await transaction.prove(
     lepton.prover,
@@ -50,7 +57,7 @@ async function main() {
 
   const tx = await lepton.contracts[3].transact([proof]);
 
-  console.log('TXID: ', (await axios.post('http://relayer.railgun.ch:3000', tx)).data.hash);
+  console.log('TXID: ', (await axios.post('http://localhost:3000', tx)).data.hash);
 }
 
 main();
